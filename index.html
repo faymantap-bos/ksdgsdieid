@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffdc58">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='8' fill='%23ff6b9d'/><path d='M15 49V15h8l18 22V15h8v34h-8L23 27v22z' fill='%23111111'/></svg>" />
+    <title>NoxxyTech Payment</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #111111;
+            --paper: #fff8e7;
+            --yellow: #ffdc58;
+            --pink: #ff6b9d;
+            --blue: #78d9ff;
+            --green: #9bea73;
+            --border: 3px solid var(--ink);
+            --shadow: 7px 7px 0 var(--ink);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        button,
+        input {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 4px solid var(--ink);
+            outline-offset: 3px;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 1.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--yellow);
+            background-image:
+                radial-gradient(var(--ink) 1.35px, transparent 1.35px),
+                radial-gradient(var(--ink) 1.35px, var(--yellow) 1.35px);
+            background-position: 0 0, 14px 14px;
+            background-size: 28px 28px;
+            min-height: 100vh;
+            min-height: 100svh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: var(--ink);
+            perspective: 1600px;
+        }
+
+        @supports (padding: max(0px)) {
+            body {
+                padding-top: max(1.5rem, env(safe-area-inset-top));
+                padding-right: max(1.5rem, env(safe-area-inset-right));
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+                padding-left: max(1.5rem, env(safe-area-inset-left));
+            }
+        }
+
+        .scene {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 460px;
+            perspective: 1400px;
+        }
+
+        .shape {
+            position: fixed;
+            z-index: 0;
+            display: block;
+            pointer-events: none;
+            border: var(--border);
+            box-shadow: 7px 7px 0 var(--ink), 14px 14px 0 currentColor;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .shape-one {
+            top: 8%;
+            left: 8%;
+            width: 82px;
+            height: 82px;
+            background: var(--pink);
+            color: var(--blue);
+            transform: rotate(-13deg);
+        }
+
+        .shape-two {
+            right: 9%;
+            bottom: 10%;
+            width: 98px;
+            height: 62px;
+            background: var(--blue);
+            color: var(--pink);
+            transform: rotate(12deg);
+            animation-delay: -2s;
+        }
+
+        .shape-three {
+            top: 18%;
+            right: 14%;
+            width: 48px;
+            height: 48px;
+            background: var(--green);
+            color: var(--paper);
+            border-radius: 50%;
+            animation-delay: -4s;
+        }
+
+        @keyframes float {
+            0%, 100% { translate: 0 0; }
+            50% { translate: 0 -12px; }
+        }
+
+        .neo-card {
+            position: relative;
+            width: 100%;
+            background: var(--paper);
+            border: var(--border);
+            box-shadow:
+                6px 6px 0 var(--ink),
+                12px 12px 0 var(--pink),
+                18px 18px 0 var(--ink);
+            transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+            transform-style: preserve-3d;
+            transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+            will-change: transform;
+        }
+
+        .neo-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            background: linear-gradient(115deg, rgba(255,255,255,0.22), transparent 32%);
+            transform: translateZ(2px);
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.7rem 1rem;
+            background: var(--blue);
+            border-bottom: var(--border);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transform: translateZ(24px);
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--green);
+            border: 2px solid var(--ink);
+            border-radius: 50%;
+        }
+
+        .status.is-offline::before {
+            background: var(--pink);
+        }
+
+        .card-content {
+            padding: 2rem;
+            transform-style: preserve-3d;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            transform: translateZ(44px);
+        }
+
+        .brand-title {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: clamp(2rem, 8vw, 2.75rem);
+            line-height: 0.9;
+            letter-spacing: -0.055em;
+            text-transform: uppercase;
+        }
+
+        .brand-subtitle {
+            max-width: 260px;
+            margin-top: 0.7rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .spark {
+            flex: 0 0 auto;
+            display: grid;
+            width: 54px;
+            height: 54px;
+            place-items: center;
+            background: var(--pink);
+            border: var(--border);
+            font-size: 1.6rem;
+            transform: translateZ(50px) rotate(7deg);
+            box-shadow: 4px 4px 0 var(--ink), 8px 8px 0 var(--blue);
+        }
+
+        .quote-box {
+            position: relative;
+            margin-bottom: 1.75rem;
+            padding: 1.15rem 1.2rem;
+            background: var(--pink);
+            border: var(--border);
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.4;
+            transform: translateZ(60px) rotate(-1deg);
+            box-shadow: 6px 6px 0 var(--ink), 11px 11px 0 var(--blue);
+        }
+
+        .quote-box span {
+            display: block;
+            margin-bottom: 0.2rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.55rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .field-label em {
+            font-style: normal;
+            color: #555;
+            font-size: 0.68rem;
+        }
+
+        .input-wrap {
+            display: flex;
+            margin-bottom: 1rem;
+            border: var(--border);
+            box-shadow: 5px 5px 0 var(--ink);
+            transition: transform 160ms ease, box-shadow 160ms ease;
+            transform: translateZ(38px);
+        }
+
+        .input-wrap:focus-within {
+            transform: translate3d(3px, 3px, 38px);
+            box-shadow: 2px 2px 0 var(--ink);
+        }
+
+        .input-wrap.is-invalid {
+            box-shadow: 5px 5px 0 var(--pink);
+        }
+
+        .currency {
+            display: grid;
+            min-width: 68px;
+            place-items: center;
+            background: var(--blue);
+            border-right: var(--border);
+            font-weight: 800;
+        }
+
+        #nominalInput {
+            width: 100%;
+            min-width: 0;
+            padding: 0.95rem 1rem;
+            background: white;
+            border: 0;
+            outline: 0;
+            color: var(--ink);
+            font: inherit;
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        #nominalInput:focus-visible {
+            outline: none;
+        }
+
+        #nominalInput::placeholder {
+            color: #777;
+            font-weight: 500;
+        }
+
+        .field-error {
+            margin: 0.7rem 0 0;
+            color: #9d0035;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .field-error[hidden] {
+            display: none;
+        }
+
+        .pay-button {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+            justify-content: space-between;
+            margin-top: 1.35rem;
+            padding: 0;
+            overflow: hidden;
+            background: var(--green);
+            border: var(--border);
+            box-shadow: var(--shadow);
+            color: var(--ink);
+            cursor: pointer;
+            font: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.035em;
+            text-align: left;
+            text-transform: uppercase;
+            transition: transform 150ms ease, box-shadow 150ms ease;
+            transform: translateZ(68px);
+            min-height: 52px;
+        }
+
+        .pay-button > span:first-child {
+            padding: 1rem 1.1rem;
+        }
+
+        .button-arrow {
+            display: grid;
+            min-width: 58px;
+            place-items: center;
+            background: var(--yellow);
+            border-left: var(--border);
+            font-size: 1.35rem;
+        }
+
+        .pay-button:hover {
+            transform: translate3d(-2px, -2px, 74px);
+            box-shadow: 10px 10px 0 var(--ink);
+        }
+
+        .pay-button:active {
+            transform: translate3d(6px, 6px, 60px);
+            box-shadow: 1px 1px 0 var(--ink);
+        }
+
+        .footer-note {
+            margin-top: 1.65rem;
+            padding-top: 1rem;
+            border-top: 2px dashed var(--ink);
+            font-size: 0.76rem;
+            font-weight: 600;
+            line-height: 1.45;
+            text-align: center;
+            transform: translateZ(25px);
+        }
+
+        .footer-note strong {
+            background: var(--yellow);
+            padding: 0.05rem 0.2rem;
+        }
+
+        .neo-dialog {
+            width: min(calc(100vw - 3rem), 430px);
+            max-height: calc(100vh - 2rem);
+            max-height: calc(100dvh - 2rem);
+            margin: auto;
+            padding: 1.6rem;
+            background: var(--paper);
+            border: var(--border);
+            border-radius: 0;
+            box-shadow:
+                6px 6px 0 var(--ink),
+                12px 12px 0 var(--blue),
+                18px 18px 0 var(--ink);
+            color: var(--ink);
+            font-family: 'Space Grotesk', sans-serif;
+            text-align: center;
+            overflow: auto;
+            overscroll-behavior: contain;
+        }
+
+        .neo-dialog::backdrop {
+            background: rgba(17, 17, 17, 0.68);
+            backdrop-filter: blur(3px);
+        }
+
+        .dialog-title {
+            margin: 0;
+            color: var(--ink);
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.55rem;
+            text-transform: uppercase;
+        }
+
+        .dialog-message {
+            margin: 0.75rem 0 0;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .dialog-icon {
+            display: grid;
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 1rem;
+            place-items: center;
+            background: var(--pink);
+            border: var(--border);
+            box-shadow: 5px 5px 0 var(--ink);
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 1.8rem;
+        }
+
+        .dialog-icon[hidden],
+        .qr-frame[hidden] {
+            display: none;
+        }
+
+        .dialog-close {
+            margin-top: 1.35rem;
+            min-height: 48px;
+            padding: 0.75rem 1.2rem;
+            background: var(--green);
+            border: var(--border);
+            border-radius: 0;
+            box-shadow: 5px 5px 0 var(--ink);
+            color: var(--ink);
+            cursor: pointer;
+            font: inherit;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .dialog-close:active {
+            translate: 4px 4px;
+            box-shadow: 1px 1px 0 var(--ink);
+        }
+
+        .qr-frame {
+            display: block;
+            width: min(280px, 100%);
+            max-width: 100%;
+            margin: 1rem auto 0;
+            padding: 0.65rem;
+            background: white;
+            border: var(--border);
+            box-shadow: 5px 5px 0 var(--ink);
+        }
+
+        .qr-frame img {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            object-fit: contain;
+            image-rendering: pixelated;
+        }
+
+        /* Tablet portrait dan landscape */
+        @media (min-width: 600px) and (max-width: 1024px) {
+            body {
+                padding: 2rem;
+            }
+
+            .scene {
+                max-width: 500px;
+            }
+
+            .card-content {
+                padding: 2.2rem;
+            }
+
+            .brand-title {
+                font-size: 3rem;
+            }
+
+            .quote-box {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Android dan ponsel lainnya */
+        @media (max-width: 599px) {
+            body {
+                align-items: flex-start;
+                padding: 1.25rem;
+            }
+
+            @supports (padding: max(0px)) {
+                body {
+                    padding-top: max(1.25rem, env(safe-area-inset-top));
+                    padding-right: max(1.25rem, env(safe-area-inset-right));
+                    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+                    padding-left: max(1.25rem, env(safe-area-inset-left));
+                }
+            }
+
+            .neo-card {
+                box-shadow:
+                    5px 5px 0 var(--ink),
+                    9px 9px 0 var(--pink),
+                    13px 13px 0 var(--ink);
+            }
+
+            .card-content {
+                padding: 1.35rem;
+            }
+
+            .brand-row {
+                margin-bottom: 1.25rem;
+            }
+
+            .brand-title {
+                font-size: clamp(1.8rem, 9vw, 2.3rem);
+            }
+
+            .spark {
+                width: 46px;
+                height: 46px;
+            }
+
+            .shape-one {
+                top: 3%;
+                left: -26px;
+                width: 58px;
+                height: 58px;
+            }
+
+            .shape-two {
+                right: -28px;
+                bottom: 3%;
+                width: 68px;
+                height: 48px;
+            }
+
+            .shape-three {
+                display: none;
+            }
+        }
+
+        /* Ponsel kecil, termasuk viewport 320–380 px */
+        @media (max-width: 380px) {
+            body {
+                padding: 0.9rem;
+            }
+
+            @supports (padding: max(0px)) {
+                body {
+                    padding-top: max(0.9rem, env(safe-area-inset-top));
+                    padding-right: max(0.9rem, env(safe-area-inset-right));
+                    padding-bottom: max(0.9rem, env(safe-area-inset-bottom));
+                    padding-left: max(0.9rem, env(safe-area-inset-left));
+                }
+            }
+
+            .top-bar {
+                padding: 0.6rem 0.75rem;
+                font-size: 0.68rem;
+            }
+
+            .card-content {
+                padding: 1rem;
+            }
+
+            .brand-row {
+                gap: 0.6rem;
+            }
+
+            .brand-title {
+                font-size: clamp(1.65rem, 8.5vw, 1.9rem);
+                letter-spacing: -0.065em;
+            }
+
+            .brand-subtitle {
+                margin-top: 0.55rem;
+                font-size: 0.8rem;
+            }
+
+            .spark {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+            }
+
+            .quote-box {
+                margin-bottom: 1.35rem;
+                padding: 0.9rem;
+                font-size: 0.92rem;
+            }
+
+            .field-label {
+                align-items: flex-start;
+                gap: 0.35rem;
+                font-size: 0.74rem;
+            }
+
+            .field-label em {
+                font-size: 0.62rem;
+                text-align: right;
+            }
+
+            .currency {
+                min-width: 56px;
+            }
+
+            #nominalInput {
+                padding: 0.85rem 0.75rem;
+                font-size: 1rem;
+            }
+
+            .pay-button {
+                font-size: 0.86rem;
+            }
+
+            .pay-button > span:first-child {
+                padding: 0.9rem 0.8rem;
+            }
+
+            .button-arrow {
+                min-width: 50px;
+            }
+
+            .neo-dialog {
+                width: calc(100vw - 1.5rem);
+                padding: 1rem;
+                box-shadow:
+                    4px 4px 0 var(--ink),
+                    8px 8px 0 var(--blue),
+                    12px 12px 0 var(--ink);
+            }
+
+            .dialog-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Perangkat sentuh: pertahankan depth lewat shadow tanpa repaint 3D. */
+        @media (hover: none), (pointer: coarse) {
+            .neo-card,
+            .top-bar,
+            .brand-row,
+            .spark,
+            .quote-box,
+            .input-wrap,
+            .footer-note,
+            .pay-button {
+                transform: none;
+            }
+
+            .input-wrap:focus-within {
+                transform: translate(3px, 3px);
+            }
+
+            .pay-button:hover {
+                transform: none;
+                box-shadow: var(--shadow);
+            }
+
+            .pay-button:active {
+                transform: translate(5px, 5px);
+                box-shadow: 1px 1px 0 var(--ink);
+            }
+        }
+
+        /* Layar pendek dan mode landscape ponsel/tablet. */
+        @media (max-height: 700px) {
+            body {
+                align-items: flex-start;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <span class="shape shape-one" aria-hidden="true"></span>
+    <span class="shape shape-two" aria-hidden="true"></span>
+    <span class="shape shape-three" aria-hidden="true"></span>
+
+    <div class="scene" id="paymentScene">
+        <main class="neo-card" aria-labelledby="pageTitle">
+            <div class="top-bar">
+                <span class="status" id="connectionStatus" role="status" aria-live="polite">Memeriksa koneksi</span>
+            </div>
+
+            <div class="card-content">
+                <header class="brand-row">
+                    <div>
+                        <h1 id="pageTitle" class="brand-title">NoxxyTech</h1>
+                        <p class="brand-subtitle">Transformasi digital untuk setiap langkah kebaikan.</p>
+                    </div>
+                    <div class="spark" aria-hidden="true">✦</div>
+                </header>
+
+                <section class="quote-box" aria-label="Pesan utama">
+                    <span>Kecil nilainya, besar dampaknya</span>
+                    “Setiap donasi membawa perubahan.”
+                </section>
+
+                <div>
+                    <label class="field-label" for="nominalInput">
+                        Nominal donasi
+                        <em>Isi angka saja</em>
+                    </label>
+                    <div class="input-wrap">
+                        <span class="currency">IDR</span>
+                        <input
+                            type="text"
+                            id="nominalInput"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            maxlength="8"
+                            autocomplete="off"
+                            placeholder="Contoh: 50000"
+                            aria-describedby="nominalError paymentNote"
+                            aria-invalid="false"
+                        >
+                    </div>
+                    <p id="nominalError" class="field-error" role="alert" hidden></p>
+                </div>
+
+                <button id="convertBtn" class="pay-button" type="button">
+                    <span>Lanjut pembayaran</span>
+                    <span class="button-arrow" aria-hidden="true">→</span>
+                </button>
+
+                <p id="paymentNote" class="footer-note">
+                    Pembayaran aman via <strong>QRIS</strong> · Pindai, bayar, selesai.
+                </p>
+            </div>
+        </main>
+    </div>
+
+    <dialog id="paymentDialog" class="neo-dialog" aria-labelledby="dialogTitle" aria-describedby="dialogMessage">
+        <div id="dialogIcon" class="dialog-icon" aria-hidden="true" hidden>!</div>
+        <h2 id="dialogTitle" class="dialog-title"></h2>
+        <p id="dialogMessage" class="dialog-message"></p>
+        <div id="dialogQrFrame" class="qr-frame" hidden>
+            <img id="dialogQrImage" src="" alt="Kode donasi digital">
+        </div>
+        <button id="dialogCloseBtn" class="dialog-close" type="button">Tutup</button>
+    </dialog>
+
+    <script>
+        const STATIC_QRIS = "00020101021126610014COM.GO-JEK.WWW01189360091433477406170210G3477406170303UMI51440014ID.CO.QRIS.WWW0215ID10243316658010303UMI5204581653033605802ID5918Noxxy Tech, Gaming6012BANJARNEGARA61055347562070703A0163044ACF";
+        const MAX_QRIS_AMOUNT = 10_000_000;
+        const nominalInput = document.getElementById('nominalInput');
+        const inputWrap = nominalInput.closest('.input-wrap');
+        const nominalError = document.getElementById('nominalError');
+        const paymentDialog = document.getElementById('paymentDialog');
+        const dialogTitle = document.getElementById('dialogTitle');
+        const dialogMessage = document.getElementById('dialogMessage');
+        const dialogIcon = document.getElementById('dialogIcon');
+        const dialogQrFrame = document.getElementById('dialogQrFrame');
+        const dialogQrImage = document.getElementById('dialogQrImage');
+        const dialogCloseBtn = document.getElementById('dialogCloseBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+
+        function ConvertCRC16(str) {
+            let crc = 0xFFFF;
+            const strlen = str.length;
+
+            for(let c = 0; c < strlen; c++) {
+                crc ^= str.charCodeAt(c) << 8;
+                for(let i = 0; i < 8; i++) {
+                    if(crc & 0x8000) {
+                        crc = (crc << 1) ^ 0x1021;
+                    } else {
+                        crc = crc << 1;
+                    }
+                }
+            }
+
+            return (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function setNominalError(message = '') {
+            const hasError = Boolean(message);
+
+            nominalError.textContent = message;
+            nominalError.hidden = !hasError;
+            nominalInput.setAttribute('aria-invalid', String(hasError));
+            inputWrap.classList.toggle('is-invalid', hasError);
+        }
+
+        function validateNominal(value) {
+            const rawValue = value.trim();
+
+            if (!rawValue) {
+                return { valid: false, message: 'Masukkan nominal donasi terlebih dahulu.' };
+            }
+
+            if (!/^\d+$/.test(rawValue)) {
+                return { valid: false, message: 'Nominal hanya boleh berisi angka 0–9.' };
+            }
+
+            const amount = Number(rawValue);
+
+            if (!Number.isSafeInteger(amount) || amount < 1) {
+                return { valid: false, message: 'Nominal minimal adalah Rp1.' };
+            }
+
+            if (amount > MAX_QRIS_AMOUNT) {
+                return { valid: false, message: 'Nominal maksimal QRIS adalah Rp10.000.000.' };
+            }
+
+            return { valid: true, value: String(amount) };
+        }
+
+        function buildDynamicQRIS(amount) {
+            const qrisBody = STATIC_QRIS.slice(0, -4);
+            const dynamicBody = qrisBody.replace('010211', '010212');
+            const countryMarker = '5802ID';
+            const markerIndex = dynamicBody.indexOf(countryMarker);
+
+            if (dynamicBody === qrisBody || markerIndex === -1) {
+                throw new Error('Format payload QRIS tidak dikenali.');
+            }
+
+            const amountTag = `54${String(amount.length).padStart(2, '0')}${amount}`;
+            const payload = dynamicBody.slice(0, markerIndex)
+                + amountTag
+                + dynamicBody.slice(markerIndex);
+
+            return payload + ConvertCRC16(payload);
+        }
+
+        function createQRCodeDataURL(text) {
+            if (typeof window.qrcode !== 'function') {
+                throw new Error('Library pembuat QR gagal dimuat.');
+            }
+
+            const qr = window.qrcode(0, 'M');
+            qr.addData(text);
+            qr.make();
+            return qr.createDataURL(10);
+        }
+
+        function showPaymentDialog({ title, message, qrDataUrl = '', isError = false }) {
+            dialogTitle.textContent = title;
+            dialogMessage.textContent = message;
+            dialogIcon.hidden = !isError;
+            dialogQrFrame.hidden = !qrDataUrl;
+
+            if (qrDataUrl) {
+                dialogQrImage.src = qrDataUrl;
+            } else {
+                dialogQrImage.removeAttribute('src');
+            }
+
+            if (paymentDialog.open && typeof paymentDialog.close === 'function') {
+                paymentDialog.close();
+            }
+
+            if (typeof paymentDialog.showModal === 'function') {
+                paymentDialog.showModal();
+            } else {
+                paymentDialog.setAttribute('open', '');
+            }
+        }
+
+        function closePaymentDialog() {
+            if (paymentDialog.open && typeof paymentDialog.close === 'function') {
+                paymentDialog.close();
+            } else {
+                paymentDialog.removeAttribute('open');
+            }
+        }
+
+        function convertQRIS() {
+            const result = validateNominal(nominalInput.value);
+
+            if (!result.valid) {
+                setNominalError(result.message);
+                nominalInput.focus();
+                return;
+            }
+
+            setNominalError();
+            nominalInput.value = result.value;
+
+            try {
+                const finalQR = buildDynamicQRIS(result.value);
+                const qrDataUrl = createQRCodeDataURL(finalQR);
+
+                showPaymentDialog({
+                    title: 'Scan dan Bawa Perubahan',
+                    message: 'Terima kasih telah berdonasi!',
+                    qrDataUrl
+                });
+            } catch (error) {
+                console.error('Gagal membuat QRIS:', error);
+                showPaymentDialog({
+                    title: 'QRIS Belum Siap',
+                    message: 'Kode pembayaran gagal dibuat. Periksa koneksi internet, lalu coba lagi.',
+                    isError: true
+                });
+            }
+        }
+
+        document.getElementById('convertBtn').addEventListener('click', convertQRIS);
+        nominalInput.addEventListener('input', () => setNominalError());
+        nominalInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') convertQRIS();
+        });
+        dialogCloseBtn.addEventListener('click', closePaymentDialog);
+
+        function updateConnectionStatus() {
+            const isOnline = navigator.onLine;
+            connectionStatus.textContent = isOnline ? 'Payment online' : 'Payment offline';
+            connectionStatus.classList.toggle('is-offline', !isOnline);
+        }
+
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
+
+        const scene = document.getElementById('paymentScene');
+        const paymentCard = scene.querySelector('.neo-card');
+        const allowTilt = window.matchMedia('(pointer: fine)').matches
+            && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (allowTilt) {
+            scene.addEventListener('pointermove', (event) => {
+                const bounds = scene.getBoundingClientRect();
+                const pointerX = (event.clientX - bounds.left) / bounds.width;
+                const pointerY = (event.clientY - bounds.top) / bounds.height;
+                const tiltX = (0.5 - pointerY) * 7;
+                const tiltY = (pointerX - 0.5) * 9;
+
+                paymentCard.style.setProperty('--tilt-x', `${tiltX.toFixed(2)}deg`);
+                paymentCard.style.setProperty('--tilt-y', `${tiltY.toFixed(2)}deg`);
+            });
+
+            scene.addEventListener('pointerleave', () => {
+                paymentCard.style.setProperty('--tilt-x', '0deg');
+                paymentCard.style.setProperty('--tilt-y', '0deg');
+            });
+        }
+
+        nominalInput.value = '';
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"90f03ffc4cc0408f","version":"2025.1.0","r":1,"token":"b6e02fc0e81a4ea890fc7f86311c307d","serverTiming":{"name":{"cfExtPri":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}}}' crossorigin="anonymous"></script>
+</body>
+</html>
